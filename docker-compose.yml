@@ -1,0 +1,43 @@
+version: '3.7'
+
+services:
+  lb:
+    container_name: load-balancer
+    build:
+      context: load-balancer/.
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    networks:
+      mynet:
+        ipv4_address: 10.5.0.10
+
+  db1:
+    container_name: database1
+    build:
+      context: database/.
+      dockerfile: Dockerfile
+    ports:
+      - 3001:3000
+    networks:
+      mynet:
+        ipv4_address: 10.5.0.11
+  
+  db2:
+    container_name: database2
+    build:
+      context: database/.
+      dockerfile: Dockerfile
+    ports:
+      - 3002:3000
+    networks:
+      mynet:
+        ipv4_address: 10.5.0.12
+
+networks:
+  mynet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
