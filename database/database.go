@@ -19,8 +19,13 @@ func PostData(c *gin.Context) {
 	key := c.Param("key")
 	value := c.Query("value")
 
-	data[key] = value
-	c.JSON(http.StatusOK, map[string]string { "value": data[key] })
+	_, present := data[key]
+	if present {
+		c.Status(http.StatusBadRequest)
+	} else {
+		data[key] = value
+		c.JSON(http.StatusCreated, map[string]string { "value": value })
+	}
 }
 
 func DeleteData(c *gin.Context) {
@@ -31,15 +36,25 @@ func DeleteData(c *gin.Context) {
 func GetData(c *gin.Context) {
 	key := c.Param("key")
 
-	c.JSON(http.StatusOK, map[string]string { "value": data[key] })
+	value, present := data[key]
+	if !present {
+		c.Status(http.StatusNotFound)
+	} else {
+		c.JSON(http.StatusOK, map[string]string { "value": value })
+	}
 }
 
 func PutData(c *gin.Context) {
 	key := c.Param("key")
 	value := c.Query("value")
 
-	data[key] = value
-	c.JSON(http.StatusOK, map[string]string { "value": data[key] })
+	_, present := data[key]
+	if !present {
+		c.Status(http.StatusNotFound)
+	} else {
+		data[key] = value
+		c.JSON(http.StatusOK, map[string]string { "value": value })
+	}
 }
 
 func DumpData(c *gin.Context) {
