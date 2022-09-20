@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+	"io"
+	"encoding/json"
 	"sync"
 	"github.com/gin-gonic/gin"
 )
@@ -30,6 +32,20 @@ func (n node) ContainesKey(key string) bool {
 	return false
 }
 
+func (n *node) UpdateKeys() {
+
+	resp, err := http.Get("http://" + n.address + ":" + n.port + "/dump")
+	if err == nil {
+
+		data := ProcessData(resp.Body)
+
+		n.keys = []string {}
+		for key, _ := range data {
+			n.keys = append(n.keys, key)
+		}
+	}
+}
+
 func KeyIndex(key string) int {
 
 	for i, n := range nodes {
@@ -41,6 +57,16 @@ func KeyIndex(key string) int {
 	return -1
 }
 
+func ProcessData(data io.ReadCloser) map[string]string {
+	defer data.Close()
+
+	buf := map[string]string {}
+	temp, _ := io.ReadAll(data)
+
+	json.Unmarshal(temp, &buf)
+
+	return buf
+}
 
 func Ping(c *gin.Context) {
 
@@ -70,7 +96,27 @@ func Ping(c *gin.Context) {
 }
 
 func DumpData(c *gin.Context) {
-	c.JSON(http.StatusOK, nil)
+
+	var dataArray = map[string](map[string]string) {}
+	var dumpSync sync.WaitGroup
+
+	for _, n := range nodes {
+
+		dumpSync.Add(1)
+		go func(n node) {
+			resp, err := http.Get("http://" + n.address + ":" + n.port + "/dump")
+	
+			if err != nil {
+				c.Status(http.StatusInternalServerError)
+				return
+			}
+			dataArray[n.address + ":" + n.port] = ProcessData(resp.Body)
+			dumpSync.Done()
+		}(n)
+	}
+	dumpSync.Wait()
+
+	c.JSON(http.StatusOK, dataArray)
 }
 
 
@@ -78,5 +124,6 @@ func main() {
 
 	router := gin.Default()
 	router.GET("/ping", Ping)
+	router.GET("/dump", DumpData)
 	router.Run(":3000")
 }
