@@ -1,19 +1,19 @@
 package main
 
 import (
-	"net/http"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
-var (
-	data map[string]string
-)
-
+var data map[string]string
 
 func Ping(c *gin.Context) {
-	c.JSON(http.StatusOK, map[string]string {})
+	c.JSON(http.StatusOK, map[string]string{})
 }
 
+func DumpData(c *gin.Context) {
+	c.JSON(http.StatusOK, data)
+}
 
 func PostData(c *gin.Context) {
 	key := c.Param("key")
@@ -22,10 +22,11 @@ func PostData(c *gin.Context) {
 	_, present := data[key]
 	if present {
 		c.Status(http.StatusBadRequest)
-	} else {
-		data[key] = value
-		c.JSON(http.StatusCreated, map[string]string { "value": value })
+		return
 	}
+
+	data[key] = value
+	c.JSON(http.StatusCreated, map[string]string{"value": value})
 }
 
 func DeleteData(c *gin.Context) {
@@ -39,9 +40,10 @@ func GetData(c *gin.Context) {
 	value, present := data[key]
 	if !present {
 		c.Status(http.StatusNotFound)
-	} else {
-		c.JSON(http.StatusOK, map[string]string { "value": value })
+		return
 	}
+
+	c.JSON(http.StatusOK, map[string]string{"value": value})
 }
 
 func PutData(c *gin.Context) {
@@ -51,16 +53,12 @@ func PutData(c *gin.Context) {
 	_, present := data[key]
 	if !present {
 		c.Status(http.StatusNotFound)
-	} else {
-		data[key] = value
-		c.JSON(http.StatusOK, map[string]string { "value": value })
+		return
 	}
-}
 
-func DumpData(c *gin.Context) {
-	c.JSON(http.StatusOK, data)
+	data[key] = value
+	c.JSON(http.StatusOK, map[string]string{"value": value})
 }
-
 
 func main() {
 
@@ -68,10 +66,10 @@ func main() {
 
 	router := gin.Default()
 	router.GET("/ping", Ping)
+	router.GET("/dump", DumpData)
 	router.POST("/data/:key", PostData)
 	router.DELETE("/data/:key", DeleteData)
 	router.GET("/data/:key", GetData)
 	router.PUT("/data/:key", PutData)
-	router.GET("/dump", DumpData)
 	router.Run(":3000")
 }
