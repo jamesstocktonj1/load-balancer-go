@@ -1,54 +1,57 @@
 package main
 
 import (
-	"net/http"
-	"io"
-	"encoding/json"
-	"sync"
+	"load-balancer/node"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
-type node struct {
-	address		string
-	port		string
-	keys		[]string
+var DatabaseNodes = []node.Node {
+	node.Node{ "10.5.0.11", "3000", "Offline", []string{} },
+	node.Node{ "10.5.0.12", "3000", "Offline", []string{} },
 }
 
-var nodes = []node {
-	node{ "10.5.0.11", "3000", []string{} },
-	node{ "10.5.0.12", "3000", []string{} },
+func Ping(c *gin.Context) {
+	var statusArray = map[string]string {}
+
+	for _, n := range DatabaseNodes {
+		n.Ping()
+		statusArray[n.Address + ":" + n.Port] = n.Status
+	}
+	c.JSON(http.StatusOK, statusArray)
 }
 
+func DumpData(c *gin.Context) {
+	var dataArray = map[string]([]string) {}
 
+	for _, n := range DatabaseNodes {
 
-func (n node) ContainesKey(key string) bool {
+		err := n.UpdateKeys()
+		if err != nil {
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		
+		dataArray[n.Address + ":" + n.Port] = n.Keys
+	}
+	c.JSON(http.StatusOK, dataArray)
+}
 
-	for _, k := range n.keys {
+func NextNode() int {
+	var lowestIndex = 0
 
-		if k == key {
-			return true
+	for i, n := range DatabaseNodes {
+
+		if len(n.Keys) < len(DatabaseNodes[lowestIndex].Keys) {
+			lowestIndex = i
 		}
 	}
-	return false
-}
-
-func (n *node) UpdateKeys() {
-
-	resp, err := http.Get("http://" + n.address + ":" + n.port + "/dump")
-	if err == nil {
-
-		data := ProcessData(resp.Body)
-
-		n.keys = []string {}
-		for key, _ := range data {
-			n.keys = append(n.keys, key)
-		}
-	}
+	return lowestIndex
 }
 
 func KeyIndex(key string) int {
 
-	for i, n := range nodes {
+	for i, n := range DatabaseNodes {
 
 		if n.ContainesKey(key) {
 			return i
@@ -57,73 +60,79 @@ func KeyIndex(key string) int {
 	return -1
 }
 
-func ProcessData(data io.ReadCloser) map[string]string {
-	defer data.Close()
 
-	buf := map[string]string {}
-	temp, _ := io.ReadAll(data)
+func PostData(c *gin.Context) {
+	key := c.Param("key")
+	value := c.Query("value")
 
-	json.Unmarshal(temp, &buf)
+	isPresent := KeyIndex(key)
+	if isPresent != -1 {
+		c.Status(http.StatusBadRequest)
+		return
+	}
 
-	return buf
+	newNode := NextNode()
+	err := DatabaseNodes[newNode].CreateValue(key, value)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusCreated, map[string]string{"value": value})
 }
 
-func Ping(c *gin.Context) {
 
-	var statusArray = map[string]string {}
-	var pingSync sync.WaitGroup
+func DeleteData(c *gin.Context) {
+	//key := c.Param("key")
 
-	for _, n := range nodes {
-
-		pingSync.Add(1)
-		go func(n node) {
-
-			resp, err := http.Get("http://" + n.address + ":" + n.port + "/ping")
-
-			if err != nil {
-				statusArray[n.address + ":" + n.port] = "Offline"
-			} else if resp.StatusCode == 200 {
-				statusArray[n.address + ":" + n.port] = "Online"
-			} else {
-				statusArray[n.address + ":" + n.port] = "Error"
-			}
-			pingSync.Done()
-		}(n)
-	}
-	pingSync.Wait()
-
-	c.JSON(http.StatusOK, statusArray)
 }
 
-func DumpData(c *gin.Context) {
+func GetData(c *gin.Context) {
+	key := c.Param("key")
 
-	var dataArray = map[string](map[string]string) {}
-	var dumpSync sync.WaitGroup
-
-	for _, n := range nodes {
-
-		dumpSync.Add(1)
-		go func(n node) {
-			resp, err := http.Get("http://" + n.address + ":" + n.port + "/dump")
-	
-			if err != nil {
-				c.Status(http.StatusInternalServerError)
-				return
-			}
-			dataArray[n.address + ":" + n.port] = ProcessData(resp.Body)
-			dumpSync.Done()
-		}(n)
+	nodeIndex := KeyIndex(key)
+	if nodeIndex == -1 {
+		c.Status(http.StatusNotFound)
+		return
 	}
-	dumpSync.Wait()
 
-	c.JSON(http.StatusOK, dataArray)
+	value, err := DatabaseNodes[nodeIndex].GetValue(key)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]string{"value": value})
+}
+
+func PutData(c *gin.Context) {
+	key := c.Param("key")
+	value := c.Query("value")
+
+	nodeIndex := KeyIndex(key)
+	if nodeIndex == -1 {
+		c.Status(http.StatusNotFound)
+		return
+	}
+
+	err := DatabaseNodes[nodeIndex].SetValue(key, value)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]string{"value": value})
 }
 
 
 func main() {
-
+	
 	router := gin.Default()
 	router.GET("/ping", Ping)
 	router.GET("/dump", DumpData)
+	router.POST("/data/:key", PostData)
+	//router.DELETE("/data/:key", DeleteData)
+	router.GET("/data/:key", GetData)
+	router.PUT("/data/:key", PutData)
 	router.Run(":3000")
 }
