@@ -1,4 +1,4 @@
-module load-balancer
+module github.com/jamesstocktonj1/load-balancer-go/load-balancer
 
 go 1.18
 

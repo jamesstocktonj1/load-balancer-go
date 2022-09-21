@@ -1,4 +1,4 @@
-module load-database
+module github.com/jamesstocktonj1/load-balancer-go/load-database
 
 go 1.18
 
