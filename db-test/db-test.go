@@ -26,7 +26,7 @@ func randomString(l int) string {
 
 func main() {
 	n := node.Node{}
-	n.Address = "192.168.0.19"
+	n.Address = "127.0.0.1"
 	n.Port = "3000"
 
 	rand.Seed(time.Now().UnixNano())
@@ -38,8 +38,9 @@ func main() {
 	errorLog := log.New(logFile, "", log.Ltime)
 
 
-	
+
 	fmt.Println("Starting Test")
+	
 	
 	fmt.Println("Creating Test Data")
 	testData := map[string]string {}
@@ -48,20 +49,25 @@ func main() {
 		testValue := randomString(12)
 		testData[testKey] = testValue
 	}
+	fmt.Printf("Data Size: %d\n\n", len(testData))
 
 	
 	fmt.Println("Test Create Value...")
+	startTime := time.Now()
 	for testKey, _ := range testData {
+
 		err = n.CreateValue(testKey, "")
 		if err != nil {
 			errorLog.Println(err)
 		}
-
-		time.Sleep(time.Millisecond)
 	}
+	endTime := time.Now()
+	t := endTime.Sub(startTime)
+	fmt.Printf("Create Value Response Time: %f ms\n\n", float64(t.Microseconds()) / (dataCount * 1000))
 
 
 	fmt.Println("Test Get Value...")
+	startTime = time.Now()
 	for testKey, _ := range testData {
 		_, err = n.GetValue(testKey)
 		if err != nil {
@@ -70,8 +76,12 @@ func main() {
 
 		time.Sleep(time.Millisecond)
 	}
+	endTime = time.Now()
+	t = endTime.Sub(startTime)
+	fmt.Printf("Get Value Response Time: %f ms\n\n", float64(t.Microseconds()) / (dataCount * 1000))
 
 
+	startTime = time.Now()
 	fmt.Println("Test Set Value")
 	for testKey, testValue := range testData {
 		err = n.SetValue(testKey, testValue)
@@ -81,8 +91,12 @@ func main() {
 
 		time.Sleep(time.Millisecond)
 	}
+	endTime = time.Now()
+	t = endTime.Sub(startTime)
+	fmt.Printf("Set Value Response Time: %f ms\n\n", float64(t.Microseconds()) / (dataCount * 1000))
 
 
+	startTime = time.Now()
 	fmt.Println("Test Verify Value...")
 	for testKey, testValue := range testData {
 		respValue, err := n.GetValue(testKey)
@@ -94,4 +108,7 @@ func main() {
 
 		time.Sleep(time.Millisecond)
 	}
+	endTime = time.Now()
+	t = endTime.Sub(startTime)
+	fmt.Printf("Get Value Response Time: %f ms\n", float64(t.Microseconds()) / (dataCount * 1000))
 }
