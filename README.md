@@ -22,17 +22,25 @@ The performance can be measured using the db-test/ program. Results are as follo
 ```
 Starting Test
 Creating Test Data
-Data Size: 5000
+Data Size: 800
 
 Test Create Value...
-Create Value Response Time: 4.010917 ms
+Minimum Response: 2.997000 ms
+Maximum Response: 8.395000 ms
+Average Response: 3.966000 ms
 
 Test Get Value...
-Get Value Response Time: 15.587667 ms
+Minimum Response: 1.519000 ms
+Maximum Response: 29.694000 ms
+Average Response: 3.053000 ms
 
 Test Set Value
-Set Value Response Time: 15.461544 ms
+Minimum Response: 2.952000 ms
+Maximum Response: 47.825001 ms
+Average Response: 4.608000 ms
 
 Test Verify Value...
-Get Value Response Time: 15.599510 ms
+Minimum Response: 1.585000 ms
+Maximum Response: 35.428001 ms
+Average Response: 3.096000 ms
 ```

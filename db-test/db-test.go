@@ -11,7 +11,7 @@ import (
 
 const (
 	letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	dataCount = 5000
+	dataCount = 800
 )
 
 func randomString(l int) string {
@@ -22,6 +22,31 @@ func randomString(l int) string {
 		b[i] = letterBytes[rand.Int63() % int64(len(letterBytes))]
 	}
 	return string(b)
+}
+
+func formatResponseTime(times []int64) {
+
+	var timeSum int64 = 0
+	timeLow := times[0]
+	timeHigh := times[0]
+
+	for _, t := range times {
+		timeSum += t
+
+		if t > timeHigh {
+			timeHigh = t
+		}
+
+		if t < timeLow {
+			timeLow = t
+		}
+	}
+
+	timeAverage := timeSum / int64(len(times))
+
+	fmt.Printf("Minimum Response: %f ms\n", float32(timeLow) / 1000)
+	fmt.Printf("Maximum Response: %f ms\n", float32(timeHigh) / 1000)
+	fmt.Printf("Average Response: %f ms\n\n", float32(timeAverage) / 1000)
 }
 
 func main() {
@@ -53,53 +78,70 @@ func main() {
 
 	
 	fmt.Println("Test Create Value...")
-	startTime := time.Now()
+	timePeriods := []int64 {}
 	for testKey, _ := range testData {
 
+		startTime := time.Now()
 		err = n.CreateValue(testKey, "")
+		endTime := time.Now()
+
+		timePeriods = append(timePeriods, endTime.Sub(startTime).Microseconds())
+
 		if err != nil {
 			errorLog.Println(err)
 		}
 	}
-	endTime := time.Now()
-	t := endTime.Sub(startTime)
-	fmt.Printf("Create Value Response Time: %f ms\n\n", float64(t.Microseconds()) / (dataCount * 1000))
+	formatResponseTime(timePeriods) 
 
 
 	fmt.Println("Test Get Value...")
-	startTime = time.Now()
+	timePeriods = []int64 {}
 	for testKey, _ := range testData {
+
+		startTime := time.Now()
 		_, err = n.GetValue(testKey)
+		endTime := time.Now()
+
+		timePeriods = append(timePeriods, endTime.Sub(startTime).Microseconds())
+		
 		if err != nil {
 			errorLog.Println(err)
 		}
 
 		time.Sleep(time.Millisecond)
 	}
-	endTime = time.Now()
-	t = endTime.Sub(startTime)
-	fmt.Printf("Get Value Response Time: %f ms\n\n", float64(t.Microseconds()) / (dataCount * 1000))
+	formatResponseTime(timePeriods) 
 
 
-	startTime = time.Now()
 	fmt.Println("Test Set Value")
+	timePeriods = []int64 {}
 	for testKey, testValue := range testData {
+
+		startTime := time.Now()
 		err = n.SetValue(testKey, testValue)
+		endTime := time.Now()
+
+		timePeriods = append(timePeriods, endTime.Sub(startTime).Microseconds())
+
 		if err != nil {
 			errorLog.Println(err)
 		}
 
 		time.Sleep(time.Millisecond)
 	}
-	endTime = time.Now()
-	t = endTime.Sub(startTime)
-	fmt.Printf("Set Value Response Time: %f ms\n\n", float64(t.Microseconds()) / (dataCount * 1000))
+	formatResponseTime(timePeriods) 
 
 
-	startTime = time.Now()
 	fmt.Println("Test Verify Value...")
+	timePeriods = []int64 {}
 	for testKey, testValue := range testData {
+
+		startTime := time.Now()
 		respValue, err := n.GetValue(testKey)
+		endTime := time.Now()
+
+		timePeriods = append(timePeriods, endTime.Sub(startTime).Microseconds())
+
 		if err != nil {
 			errorLog.Println(err)
 		} else if respValue != testValue {
@@ -108,7 +150,5 @@ func main() {
 
 		time.Sleep(time.Millisecond)
 	}
-	endTime = time.Now()
-	t = endTime.Sub(startTime)
-	fmt.Printf("Get Value Response Time: %f ms\n", float64(t.Microseconds()) / (dataCount * 1000))
+	formatResponseTime(timePeriods) 
 }
