@@ -1,15 +1,14 @@
 package node
 
 import (
-	"testing"
-	"strings"
 	"io"
+	"strings"
+	"testing"
 )
-
 
 func TestProcessData(t *testing.T) {
 	testData := "{\"test\": \"value\"}"
-	expectedData := map[string]string {"test": "value"}
+	expectedData := map[string]string{"test": "value"}
 
 	testReader := strings.NewReader(testData)
 	testReadClose := io.NopCloser(testReader)
@@ -25,9 +24,9 @@ func TestContainesKey(t *testing.T) {
 	t.Run("present Key", func(t *testing.T) {
 		testNode := Node{}
 		testNode.Keys = append(testNode.Keys, "test")
-	
+
 		present := testNode.ContainesKey("test")
-	
+
 		if present != true {
 			t.Errorf("expected Node Keys to contain \"test\" but presence was false")
 		}
@@ -35,9 +34,9 @@ func TestContainesKey(t *testing.T) {
 
 	t.Run("not present Key", func(t *testing.T) {
 		testNode := Node{}
-	
+
 		present := testNode.ContainesKey("test")
-	
+
 		if present != false {
 			t.Errorf("expected Node Keys to not contain \"test\" but presence was true")
 		}
