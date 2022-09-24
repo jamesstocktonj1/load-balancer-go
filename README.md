@@ -1,6 +1,6 @@
 # Go Database Load Balancer
 
-A simple distributed database using a load-balancer node and a number of database nodes. This is an introduction to docker and docker compose.
+A simple distributed database using a [load-balancer](https://github.com/jamesstocktonj1/load-balancer-go/tree/main/load-balancer) node and a number of [database](https://github.com/jamesstocktonj1/load-balancer-go/tree/main/database) nodes. This is an introduction to docker and docker compose.
 
 
 To run the project simply run docker compose: 
@@ -17,7 +17,7 @@ The architecture is as followed:
 | database2 | 3002  |
 
 ## Performance
-The performance can be measured using the db-test/ program. Results are as followed:
+The performance can be measured using the [db-test](https://github.com/jamesstocktonj1/load-balancer-go/tree/main/db-test) program. Results are as followed:
 
 ```
 Starting Test
