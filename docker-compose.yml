@@ -33,6 +33,28 @@ services:
     networks:
       mynet:
         ipv4_address: 10.5.0.12
+  
+  db3:
+    container_name: database3
+    build:
+      context: database/.
+      dockerfile: Dockerfile
+    ports:
+      - 3003:3000
+    networks:
+      mynet:
+        ipv4_address: 10.5.0.13
+  
+  db4:
+    container_name: database4
+    build:
+      context: database/.
+      dockerfile: Dockerfile
+    ports:
+      - 3004:3000
+    networks:
+      mynet:
+        ipv4_address: 10.5.0.14
 
 networks:
   mynet:

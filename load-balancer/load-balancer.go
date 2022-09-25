@@ -9,6 +9,8 @@ import (
 var DatabaseNodes = []node.Node {
 	node.Node{ "10.5.0.11", "3000", "Offline", []string{} },
 	node.Node{ "10.5.0.12", "3000", "Offline", []string{} },
+	node.Node{ "10.5.0.13", "3000", "Offline", []string{} },
+	node.Node{ "10.5.0.14", "3000", "Offline", []string{} },
 }
 
 func Ping(c *gin.Context) {

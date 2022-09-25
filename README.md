@@ -10,11 +10,13 @@ docker compose up -d --build
 
 The architecture is as followed:
 
-| Docker Name | Port |
-| --- | --- |
-| load-balancer | 3000 |
-| database1 | 3001  |
-| database2 | 3002  |
+| Docker Name | IP | Port |
+| --- | --- | --- |
+| load-balancer | 10.5.0.10 | 3000 |
+| database1 | 10.5.0.11 | 3001 |
+| database2 | 10.5.0.12 | 3002 |
+| database3 | 10.5.0.13 | 3003 |
+| database4 | 10.5.0.14 | 3004 |
 
 ## Performance
 The performance can be measured using the [db-test](https://github.com/jamesstocktonj1/load-balancer-go/tree/main/db-test) program. Results are as followed:
