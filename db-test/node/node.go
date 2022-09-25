@@ -171,3 +171,21 @@ func (n *Node) Test_DeleteValue(key string) (time.Duration, error) {
 
 	return elapsedTime, err
 }
+
+func (n *Node) Test_GetKeys() (map[string]([]string), error) {
+	keyLists := map[string]([]string) {}
+
+	resp, err := http.Get("http://" + n.Address + ":" + n.Port + "/dump")
+	if err != nil {
+		return keyLists, err
+	}
+
+	defer resp.Body.Close()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return keyLists, err
+	}
+
+	json.Unmarshal(data, &keyLists)
+	return keyLists, nil
+}

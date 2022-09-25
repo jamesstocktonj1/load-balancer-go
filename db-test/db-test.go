@@ -131,4 +131,16 @@ func main() {
 		time.Sleep(time.Millisecond)
 	}
 	formatResponseTime(timePeriods)
+
+	
+	fmt.Println("Analysing Keys")
+
+	keyLists, err := n.Test_GetKeys()
+	if err != nil {
+		errorLog.Println(err)
+	}
+
+	for host, keys := range keyLists {
+		fmt.Printf("Host: %s,\tKey Count: %d\n", host, len(keys))
+	}
 }
